@@ -1,0 +1,1 @@
+window.__PRODUCTION__祁启云__CONF__={"VITE_GLOB_PROD_MOCK":"false","VITE_GLOB_APP_TITLE":"祁启云验证","VITE_GLOB_APP_SHORT_NAME":"祁启云","VITE_GLOB_API_URL":"","VITE_GLOB_UPLOAD_URL":"","VITE_GLOB_IMG_URL":"","VITE_GLOB_API_URL_PREFIX":"/admin"};Object.freeze(window.__PRODUCTION__祁启云__CONF__);Object.defineProperty(window,"__PRODUCTION__祁启云__CONF__",{configurable:false,writable:false,});

@@ -1,0 +1,1 @@
+const r={width:{type:String,default:"100%"},height:{type:String,default:"340px"},login:{type:Array,default(){return[]}},register:{type:Array,default(){return[]}},range:{type:Array,default(){return[]}},add:{type:Array,default(){return[]}},active:{type:Array,default(){return[]}}};export{r as b};

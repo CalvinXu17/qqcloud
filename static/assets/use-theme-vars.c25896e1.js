@@ -1,0 +1,1 @@
+import{as as i,d_ as s,$ as t,dh as m}from"./index.59f76cad.js";function d(){const n=i(s,null);return t(()=>{if(n===null)return m;const{mergedThemeRef:{value:r},mergedThemeOverridesRef:{value:e}}=n,o=(r==null?void 0:r.common)||m;return e!=null&&e.common?Object.assign({},o,e.common):o})}export{d as u};
