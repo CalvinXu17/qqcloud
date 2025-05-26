@@ -2,14 +2,15 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/astaxie/beego/validation"
-	"github.com/beego/beego/v2/core/logs"
 	"strconv"
 	"strings"
 	"time"
 	"verification/controllers/common"
 	"verification/models"
 	"verification/validation/api"
+
+	"github.com/astaxie/beego/validation"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type Func struct {
@@ -42,7 +43,7 @@ func (p *IndexController) GetSoftInfo() {
 	if p.ProjectVersion.IsMustUpdate == 0 {
 		mustUpdate = 1
 	}
-	if p.ProjectVersion.IsActive > 0{
+	if p.ProjectVersion.IsActive > 0 {
 		mustUpdate = 1
 	}
 	s := SoftInfo{
@@ -230,6 +231,9 @@ func (p *IndexController) Login() {
 	if status == false && p.Project.Type == 1 {
 		p.CallErrorJson(msg, nil)
 	}
+	if p.Project.ID != u.ProjectId {
+		p.CallErrorJson("项目不匹配，请重新选择", nil)
+	}
 	if p.Project.StatusType == 0 {
 		if u.EndTime < int(time.Now().Unix()) {
 			p.CallErrorJson("会员账号已过期", nil)
@@ -241,7 +245,7 @@ func (p *IndexController) Login() {
 	if p.Project.StatusType != 2 && u.Tag == "免费用户" && p.Project.Type == 1 {
 		p.CallErrorJson("免费用户已不可用，请注册会员之后再登录", nil)
 	}
-	if u.IsLock > 0{
+	if u.IsLock > 0 {
 		p.CallErrorJson("会员账号已被锁定", nil)
 	}
 
@@ -419,7 +423,7 @@ func (p *IndexController) UnBind() {
 	if u.ID == 0 {
 		p.CallErrorJson("会员不存在", nil)
 	}
-	if u.IsLock > 0{
+	if u.IsLock > 0 {
 		p.CallErrorJson("会员账号已被锁定", nil)
 	}
 	if u.Mac == "" {
@@ -497,7 +501,7 @@ func (p *IndexController) Forget() {
 	if u.ID == 0 {
 		p.CallErrorJson("会员不存在", nil)
 	}
-	if u.IsLock > 0{
+	if u.IsLock > 0 {
 		p.CallErrorJson("会员账号已被锁定", nil)
 	}
 	u.Password = param.Pwd
@@ -609,7 +613,7 @@ func (p *IndexController) Points() {
 	if u.ID == 0 {
 		p.CallErrorJson("会员不存在", nil)
 	}
-	if u.IsLock > 0{
+	if u.IsLock > 0 {
 		p.CallErrorJson("会员账号已被锁定", nil)
 	}
 	if u.Points <= 0 {
@@ -728,7 +732,7 @@ func (p *IndexController) Heart() {
 			p.CallErrorJson("会员账号已过期", nil)
 		}
 	}
-	if u.IsLock > 0{
+	if u.IsLock > 0 {
 		p.CallErrorJson("会员账号已被锁定", nil)
 	}
 	realCday := float64(float64(int64(u.EndTime)-time.Now().Unix())/float64(24*60*60)) * float64(100)

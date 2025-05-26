@@ -4,6 +4,13 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+	"verification/controllers/common"
+	"verification/models"
+	"verification/validation/api"
+
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/validation"
 	"github.com/beego/beego/v2/core/logs"
@@ -11,12 +18,6 @@ import (
 	"github.com/dop251/goja"
 	uuid "github.com/satori/go.uuid"
 	"github.com/yuchenfw/gocrypt"
-	"strconv"
-	"strings"
-	"time"
-	"verification/controllers/common"
-	"verification/models"
-	"verification/validation/api"
 )
 
 const (
@@ -311,7 +312,7 @@ func (p *BaseController) Prepare() {
 	} else {
 		p.Error(10005, "项目不存在")
 	}
-	if p.Project.Type == 1 {
+	if p.Project.StatusType == 1 {
 		p.Error(10006, "已停止运营")
 	}
 	// 检查签名是否正确
