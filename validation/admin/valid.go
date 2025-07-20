@@ -1,8 +1,9 @@
 package admin
 
 import (
-	"github.com/beego/beego/v2/core/validation"
 	"regexp"
+
+	"github.com/beego/beego/v2/core/validation"
 )
 
 type CreateCards struct {
@@ -25,8 +26,8 @@ func (c *CreateCards) Valid(v *validation.Validation) {
 	if c.Price > 9999 {
 		_ = v.SetError("Price", "定价最大9999")
 	}
-	if c.Days > 9999 {
-		_ = v.SetError("Price", "天数最大9999")
+	if c.Days > 99999 {
+		_ = v.SetError("Price", "天数最大99999")
 	}
 	if c.Points > 9999 {
 		_ = v.SetError("Price", "点数最大9999")

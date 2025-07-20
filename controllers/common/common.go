@@ -8,6 +8,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+	"unsafe"
+
 	"github.com/astaxie/beego/cache"
 	_ "github.com/astaxie/beego/cache/redis"
 	"github.com/beego/beego/v2/core/config"
@@ -16,14 +26,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/yuchenfw/gocrypt"
 	"github.com/yuchenfw/gocrypt/rsa"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-	"unsafe"
 )
 
 var (
@@ -45,6 +47,9 @@ type LoginResult struct {
 
 type Config struct {
 	Cache      string `json:"Cache"`
+	RedisIp    string `json:"RedisIp"`
+	RedisPort  string `json:"RedisPort"`
+	RedisPwd   string `json:"RedisPwd"`
 	Sql        string `json:"Sql"`
 	SqlIp      string `json:"SqlIp"`
 	SqlPort    string `json:"SqlPort"`
@@ -148,6 +153,15 @@ func ReadIni() (status bool, conf Config) {
 	}
 	Cache, _ := cfg.String("app::cache")
 	Key, _ := cfg.String("app::key")
+	RedisIp, _ := cfg.String("redis::ip")
+	if RedisIp == "" {
+		RedisIp = "127.0.1"
+	}
+	RedisPort, _ := cfg.String("redis::port")
+	if RedisPort == "" || RedisPort == "0" {
+		RedisPort = "6379"
+	}
+	RedisPwd, _ := cfg.String("redis::pwd")
 	Sql, _ := cfg.String("sql::type")
 	SqlIp, _ := cfg.String("sql::ip")
 	SqlPort, _ := cfg.String("sql::port")
@@ -161,6 +175,9 @@ func ReadIni() (status bool, conf Config) {
 	}
 	Conf = Config{
 		Cache:      Cache,
+		RedisIp:    RedisIp,
+		RedisPort:  RedisPort,
+		RedisPwd:   RedisPwd,
 		Sql:        Sql,
 		SqlIp:      SqlIp,
 		SqlPort:    SqlPort,
@@ -173,24 +190,39 @@ func ReadIni() (status bool, conf Config) {
 	return true, Conf
 }
 
-func GetCacheAC() (status bool, client cache.Cache) {
+var (
+	globalCacheClient cache.Cache
+	cacheOnce         sync.Once
+	cacheStatus       bool
+)
+
+// 初始化缓存客户端，仅执行一次
+func initCache() {
+	var ac cache.Cache
+	var err error
+
 	if Conf.Cache == "file" {
-		ac, err := cache.NewCache("file", `{"CachePath":"./cache","FileSuffix":".cache","DirectoryLevel":"2","EmbedExpiry":"3600"}`)
-		if err != nil {
-			logs.Error("File缓存初始化失败:", err)
-			return false, nil
-		}
-		return true, ac
+		ac, err = cache.NewCache("file", `{"CachePath":"./cache","FileSuffix":".cache","DirectoryLevel":"2","EmbedExpiry":"3600"}`)
+	} else if Conf.Cache == "redis" {
+		configStr := fmt.Sprintf(`{"key":"qqyCache","conn":"%s:%s","dbNum":"0","password":"%s"}`, Conf.RedisIp, Conf.RedisPort, Conf.RedisPwd)
+		ac, err = cache.NewCache("redis", configStr)
+	} else {
+		logs.Error("未知缓存类型:", Conf.Cache)
+		return
 	}
-	if Conf.Cache == "redis" {
-		ac, err := cache.NewCache("redis", `{"key":"qqyCache","conn":"127.0.0.1:6379","dbNum":"0"}`)
-		if err != nil {
-			logs.Error("Redis连接失败，使用File缓存:", err)
-			return false, nil
-		}
-		return true, ac
+
+	if err != nil {
+		logs.Error("缓存初始化失败:", err)
+		return
 	}
-	return false, nil
+
+	globalCacheClient = ac
+	cacheStatus = true
+}
+
+func GetCacheAC() (bool, cache.Cache) {
+	cacheOnce.Do(initCache)
+	return cacheStatus, globalCacheClient
 }
 
 func GetManagerId(id interface{}) int {

@@ -3,12 +3,13 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/beego/beego/v2/client/orm"
-	"github.com/beego/beego/v2/core/logs"
 	"regexp"
 	"strconv"
 	"time"
 	"verification/controllers/common"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type Manager struct {
@@ -414,11 +415,11 @@ func (m *Manager) Delete() int64 {
 }
 
 func (m *Manager) GetAllAgent(managerIdArr []int) []Manager {
-	data := make([]Manager,0)
+	data := make([]Manager, 0)
 	o := orm.NewOrm()
 	qs := o.QueryTable(&m)
-	_,err:= qs.Filter("ID__in",managerIdArr).All(&data,"User","Email","ID")
-	if err != nil{
+	_, err := qs.Filter("ID__in", managerIdArr).All(&data, "User", "Email", "ID")
+	if err != nil {
 		return data
 	}
 	return data

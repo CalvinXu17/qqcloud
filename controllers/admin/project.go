@@ -2,14 +2,15 @@ package admin
 
 import (
 	"encoding/json"
-	"github.com/beego/beego/v2/core/logs"
-	"github.com/beego/beego/v2/core/validation"
 	"strconv"
 	"strings"
 	"time"
 	"verification/controllers/common"
 	"verification/models"
 	"verification/validation/admin"
+
+	"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/validation"
 )
 
 type ProjectController struct {
@@ -813,7 +814,7 @@ func (p *ProjectController) UpdateMember() {
 	mac := p.GetString("mac", "")
 	phone, _ := p.GetInt64("phone", 0)
 	email := p.GetString("email", "")
-	endtime, _ := p.GetInt("endtime", 0)
+	endtime, _ := p.GetInt64("endtime", 0)
 	member := models.Member{
 		Name:         name,
 		NickName:     nickName,
@@ -1223,7 +1224,7 @@ func (p *ProjectController) GetOrder() {
 	limit, _ := p.GetInt64("limit", 10)
 	page, _ := p.GetInt64("page", 1)
 	var o *models.Order
-	status, list :=o.GetOrderList(limit, page, p.ManagerIdArr)
+	status, list := o.GetOrderList(limit, page, p.ManagerIdArr)
 	if status == true {
 		p.Success(0, list, "获取成功")
 	}

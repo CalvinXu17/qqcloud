@@ -1,11 +1,12 @@
 package models
 
 import (
-	"github.com/beego/beego/v2/client/orm"
-	"github.com/beego/beego/v2/core/logs"
 	"strings"
 	"time"
 	"verification/controllers/common"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type Keys struct {
@@ -418,16 +419,13 @@ func (this *Keys) Recharge(user string, key string, p Project) (bool, string, Re
 	activeTime := u.ActiveTime
 	endTime := u.EndTime
 
-	if u.EndTime < int(time.Now().Unix()) {
-		activeTime = int(time.Now().Unix())
+	if u.EndTime < time.Now().Unix() {
+		activeTime = time.Now().Unix()
 		days = c.Days
-		endTime = activeTime + int(c.Days*24*60*60)
+		endTime = activeTime + int64(c.Days*24*60*60)
 	} else {
-		endTime = endTime + int(c.Days*24*60*60)
+		endTime = endTime + int64(c.Days*24*60*60)
 		days = c.Days + u.Days
-	}
-	if endTime > 2147483647 {
-		endTime = 2147483647
 	}
 
 	u.ActiveTime = activeTime

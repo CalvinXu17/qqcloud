@@ -1,9 +1,10 @@
 package api
 
 import (
-	"github.com/astaxie/beego/validation"
 	"regexp"
 	"strconv"
+
+	"github.com/astaxie/beego/validation"
 )
 
 type Encrypt struct {

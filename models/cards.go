@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/beego/beego/v2/adapter/orm"
 	"github.com/beego/beego/v2/core/logs"
-	"time"
 )
 
 type Cards struct {
@@ -11,10 +12,10 @@ type Cards struct {
 	ProjectId  int       `orm:"index;default(0)" json:"project_id"`
 	ManagerId  int       `orm:"index;default(0)" json:"manager_id"`
 	Title      string    `orm:"size(28);null;description(激活码名称)" json:"title" valid:"Required,AlphaNumeric" valid:"MaxSize(28)"`
-	Price      float64   `orm:"digits(12);decimals(2);default(0);description(激活码定价)" json:"price" valid:"Max(9999);MaxSize(4)"`
+	Price      float64   `orm:"digits(12);decimals(2);default(0);description(激活码定价)" json:"price" valid:"Max(99999);MaxSize(6)"`
 	KeyPrefix  string    `orm:"index;size(4);null;description(激活码前缀)" json:"key_prefix"`
 	LevelId    int       `orm:"index;default(0);description(关联会员套餐)" json:"level_id"`
-	Days       float64   `orm:"digits(12);decimals(2);default(0);description(天数)" json:"days" valid:"Max(999);MaxSize(4)"`
+	Days       float64   `orm:"digits(12);decimals(2);default(0);description(天数)" json:"days" valid:"Max(99999);MaxSize(5)"`
 	Points     int       `orm:"default(0);description(点数)" json:"points" valid:"Max(9999);MaxSize(4)"`
 	KeyExtAttr string    `orm:"size(200);null;description(激活码扩展属性)" json:"key_ext_attr" valid:"MaxSize(199)"`
 	Tag        string    `orm:"size(200);null;description(标签)" json:"tag" valid:"MaxSize(199)"`
@@ -144,7 +145,7 @@ func (c *Cards) GetAgentCardList(list []int) (status bool, pager Pager) {
 	var err error
 	_, err = o.QueryTable(&c).Filter("ID__in", list).All(&data)
 	if err != nil {
-		logs.Error("获取代理授权卡类失败",err)
+		logs.Error("获取代理授权卡类失败", err)
 		return false, Pager{}
 	}
 	return true, Pager{

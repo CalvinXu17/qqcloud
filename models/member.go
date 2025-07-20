@@ -1,12 +1,13 @@
 package models
 
 import (
-	"github.com/beego/beego/v2/client/orm"
-	"github.com/beego/beego/v2/core/logs"
 	"strconv"
 	"time"
 	"verification/controllers/common"
 	"verification/validation/api"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type Member struct {
@@ -27,10 +28,10 @@ type Member struct {
 	Scope         int       `orm:"default(0)" json:"scope" valid:"MaxSize(6)"`
 	KeyExtAttr    string    `orm:"size(200);null" json:"key_ext_attr" valid:"MaxSize(200)"`
 	Tag           string    `orm:"size(200);null" json:"tag" valid:"MaxSize(200)"`
-	ActiveTime    int       `orm:"index;default(0)" json:"active_time"`
-	EndTime       int       `orm:"index;default(0)" json:"end_time"`
-	PauseTime     int       `orm:"index;default(0)" json:"pause_time"`
-	LastLoginTime int       `orm:"index;default(0)" json:"last_login_time"`
+	ActiveTime    int64     `orm:"index;default(0)" json:"active_time"`
+	EndTime       int64     `orm:"index;default(0)" json:"end_time"`
+	PauseTime     int64     `orm:"index;default(0)" json:"pause_time"`
+	LastLoginTime int64     `orm:"index;default(0)" json:"last_login_time"`
 	LastLoginIp   string    `orm:"index;size(30);null" json:"last_login_ip"`
 	IsLock        int       `orm:"default(0);description(0正常,1锁定);index" json:"is_lock"`
 	CreateTime    time.Time `orm:"auto_now_add;type(datetime);index" json:"create_time"`
@@ -192,9 +193,9 @@ func (m *Member) KeyRegister(longkeys string, p Project, param api.UnEncrypt, ip
 			Mac:           param.Mac,
 			KeyExtAttr:    "免费用户",
 			Tag:           "免费用户",
-			ActiveTime:    int(time.Now().Unix()),
-			EndTime:       int(time.Now().Unix()) + int(999*float64(24*60*60)),
-			LastLoginTime: int(time.Now().Unix()),
+			ActiveTime:    time.Now().Unix(),
+			EndTime:       time.Now().Unix() + int64(999*(24*60*60)),
+			LastLoginTime: time.Now().Unix(),
 			LastLoginIp:   ip,
 		}
 		_, err = to.Insert(&u)
@@ -255,10 +256,7 @@ func (m *Member) KeyRegister(longkeys string, p Project, param api.UnEncrypt, ip
 	if tag == "" {
 		tag = c.Tag
 	}
-	endtime := int(time.Now().Unix()) + int(c.Days*float64(24*60*60))
-	if endtime > 2147483647 {
-		endtime = 2147483647
-	}
+	endtime := time.Now().Unix() + int64(c.Days*(24*60*60))
 	u := Member{
 		ManagerId:     k.ManagerId,
 		ProjectId:     p.ID,
@@ -271,9 +269,9 @@ func (m *Member) KeyRegister(longkeys string, p Project, param api.UnEncrypt, ip
 		Mac:           param.Mac,
 		KeyExtAttr:    c.KeyExtAttr,
 		Tag:           tag,
-		ActiveTime:    int(time.Now().Unix()),
+		ActiveTime:    time.Now().Unix(),
 		EndTime:       endtime,
-		LastLoginTime: int(time.Now().Unix()),
+		LastLoginTime: time.Now().Unix(),
 		LastLoginIp:   ip,
 	}
 	id, err := to.Insert(&u)
@@ -406,7 +404,7 @@ func (u *Member) Unbind(p ProjectLogin, mac string) (status bool, msg string) {
 		// 扣除天数
 		if u.Days >= p.UnbindWeaken {
 			u.Days = u.Days - p.UnbindWeaken
-			u.EndTime = u.EndTime - int(p.UnbindWeaken*float64(24*60*60))
+			u.EndTime = u.EndTime - int64(p.UnbindWeaken*(24*60*60))
 		} else {
 			return false, "剩余天数不满足解绑扣除需求，无法解绑"
 		}
@@ -486,17 +484,13 @@ func (m *Member) UpdateById(member Member) (bool, string) {
 	if err != nil {
 		return false, "会员不存在"
 	}
-	//2147483647
 
 	if member.Days != m.Days {
 		newDays := member.Days - m.Days
-		m.EndTime = m.EndTime + int(newDays*(24*60*60))
+		m.EndTime = m.EndTime + int64(newDays*24*60*60)
 	}
 	if member.EndTime > 0 {
 		m.EndTime = member.EndTime
-	}
-	if m.EndTime > 2147483647 {
-		m.EndTime = 2147483647
 	}
 	m.Password = member.Password
 	m.SafePassword = member.SafePassword
@@ -512,8 +506,8 @@ func (m *Member) UpdateById(member Member) (bool, string) {
 	}
 	if row > 0 {
 		_, ac := common.GetCacheAC()
-		_ = ac.Delete("member-key-"+ strconv.Itoa(m.ProjectId) +"-" + m.Name)
-		_ = ac.Delete("member-key-"+ strconv.Itoa(m.ProjectId) +"-" +m.Email)
+		_ = ac.Delete("member-key-" + strconv.Itoa(m.ProjectId) + "-" + m.Name)
+		_ = ac.Delete("member-key-" + strconv.Itoa(m.ProjectId) + "-" + m.Email)
 		return true, "更新成功"
 	}
 	return false, "更新失败"

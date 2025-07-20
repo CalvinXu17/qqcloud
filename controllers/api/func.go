@@ -109,8 +109,8 @@ func (p *IndexController) Register() {
 		NickName:      param.User,
 		Password:      param.Pwd,
 		SafePassword:  param.Pwd2,
-		ActiveTime:    int(time.Now().Unix()),
-		LastLoginTime: int(time.Now().Unix()),
+		ActiveTime:    time.Now().Unix(),
+		LastLoginTime: time.Now().Unix(),
 		LastLoginIp:   p.Ip,
 	}
 	k := models.Keys{LongKeys: param.Key}
@@ -140,7 +140,7 @@ func (p *IndexController) Register() {
 		member.Points = cards.Points
 		member.Tag = tag
 		member.KeyExtAttr = cards.KeyExtAttr
-		member.EndTime = int(time.Now().Unix()) + int(cards.Days*float64(24*60*60))
+		member.EndTime = time.Now().Unix() + int64(cards.Days*24*60*60)
 		member.ManagerId = k.ManagerId
 	}
 	if p.Project.StatusType == 2 {
@@ -149,7 +149,7 @@ func (p *IndexController) Register() {
 		member.Tag = "免费用户"
 		member.KeyExtAttr = "免费用户"
 		member.ManagerId = p.Project.ManagerId
-		member.EndTime = int(time.Now().Unix()) + int(999*float64(24*60*60))
+		member.EndTime = time.Now().Unix() + int64(24*60*60)
 	}
 	status, msg := member.Register(k)
 	if status == true {
@@ -161,9 +161,9 @@ func (p *IndexController) Register() {
 type MemberInfo struct {
 	Client             string  `json:"client"`
 	Endtime            string  `json:"endtime"`
-	EndtimeTimestamp   int     `json:"endtimeTimestamp"`
+	EndtimeTimestamp   int64   `json:"endtimeTimestamp"`
 	Starttime          string  `json:"starttime"`
-	StarttimeTimestamp int     `json:"StarttimeTimestamp"`
+	StarttimeTimestamp int64   `json:"StarttimeTimestamp"`
 	RealCdays          float64 `json:"realCdays"`
 	CountCdays         float64 `json:"countCdays"`
 	CountPoints        int     `json:"countPoints"`
@@ -235,7 +235,7 @@ func (p *IndexController) Login() {
 		p.CallErrorJson("项目不匹配，请重新选择", nil)
 	}
 	if p.Project.StatusType == 0 {
-		if u.EndTime < int(time.Now().Unix()) {
+		if u.EndTime < time.Now().Unix() {
 			p.CallErrorJson("会员账号已过期", nil)
 		}
 	}
@@ -310,7 +310,7 @@ func (p *IndexController) Login() {
 		}
 	}
 	u.LastLoginIp = p.Ip
-	u.LastLoginTime = int(time.Now().Unix())
+	u.LastLoginTime = time.Now().Unix()
 	status, msg = u.UpdateInfo()
 	//if status == false {
 	//	p.CallErrorJson(msg, nil)
@@ -341,7 +341,7 @@ func (p *IndexController) Login() {
 	}
 	p.InsertHeartList(u, o)
 
-	realCday := float64(float64(int64(u.EndTime)-time.Now().Unix())/float64(24*60*60)) * float64(100)
+	realCday := float64((u.EndTime - time.Now().Unix()) / 24 * 60 * 60)
 
 	i := MemberInfo{
 		Client:             client,
@@ -349,7 +349,7 @@ func (p *IndexController) Login() {
 		EndtimeTimestamp:   u.EndTime,
 		Starttime:          time.Unix(int64(u.ActiveTime), 0).Format("2006-01-02 15:04:05"),
 		StarttimeTimestamp: u.ActiveTime,
-		RealCdays:          float64(float64(int(realCday)) / float64(100)),
+		RealCdays:          realCday,
 		CountCdays:         u.Days,
 		CountPoints:        u.Points,
 		Username:           u.Name,
@@ -637,9 +637,9 @@ func (p *IndexController) Points() {
 type HeartInfo struct {
 	Client                      string           `json:"client"`
 	Endtime                     string           `json:"endtime"`
-	EndtimeTimestamp            int              `json:"endtimeTimestamp"`
+	EndtimeTimestamp            int64            `json:"endtimeTimestamp"`
 	Starttime                   string           `json:"starttime"`
-	StarttimeTimestamp          int              `json:"StarttimeTimestamp"`
+	StarttimeTimestamp          int64            `json:"StarttimeTimestamp"`
 	RealCdays                   float64          `json:"realCdays"`
 	CountCdays                  float64          `json:"countCdays"`
 	CountPoints                 int              `json:"countPoints"`
@@ -728,14 +728,14 @@ func (p *IndexController) Heart() {
 		_ = json.Unmarshal([]byte(common.Strval(memberJson)), &u)
 	}
 	if p.Project.StatusType == 0 {
-		if u.EndTime < int(time.Now().Unix()) {
+		if u.EndTime < time.Now().Unix() {
 			p.CallErrorJson("会员账号已过期", nil)
 		}
 	}
 	if u.IsLock > 0 {
 		p.CallErrorJson("会员账号已被锁定", nil)
 	}
-	realCday := float64(float64(int64(u.EndTime)-time.Now().Unix())/float64(24*60*60)) * float64(100)
+	realCday := float64((u.EndTime - time.Now().Unix()) / 24 * 60 * 60)
 	onlineAllowCurrentLogin := 0
 	if p.ProjectLogin.Mode == 2 {
 		onlineAllowCurrentLogin = p.ProjectLogin.NumberMore
@@ -750,7 +750,7 @@ func (p *IndexController) Heart() {
 		EndtimeTimestamp:            u.EndTime,
 		Starttime:                   time.Unix(int64(u.ActiveTime), 0).Format("2006-01-02 15:04:05"),
 		StarttimeTimestamp:          u.ActiveTime,
-		RealCdays:                   float64(float64(int(realCday)) / float64(100)),
+		RealCdays:                   realCday,
 		CountCdays:                  u.Days,
 		CountPoints:                 u.Points,
 		Username:                    u.Name,
