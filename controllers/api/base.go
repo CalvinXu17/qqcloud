@@ -238,7 +238,7 @@ func (p *BaseController) Prepare() {
 	// 如果使用了AES加密则调用AES解密
 	if p.Encrypt == 1 {
 		// 读取项目缓存信息
-		projectString := ac.Get(p.Param.Appkey)
+		projectString := common.Strval(ac.Get(p.Param.Appkey))
 		if projectString != "" {
 			err := json.Unmarshal([]byte(common.Strval(projectString)), &p.Project)
 			if err != nil {
@@ -303,7 +303,7 @@ func (p *BaseController) Prepare() {
 		}
 	}
 	// 读取项目缓存信息
-	projectString := ac.Get(p.Param.Appkey)
+	projectString := common.Strval(ac.Get(p.Param.Appkey))
 	if projectString != "" {
 		err = json.Unmarshal([]byte(common.Strval(projectString)), &p.Project)
 		if err != nil {
@@ -333,7 +333,7 @@ func (p *BaseController) Prepare() {
 	s.WriteString(strconv.Itoa(p.Project.ID))
 	s.WriteString("-")
 	s.WriteString(p.Param.Version)
-	versionString := ac.Get(s.String())
+	versionString := common.Strval(ac.Get(s.String()))
 	if versionString != "" {
 		err = json.Unmarshal([]byte(common.Strval(versionString)), &p.ProjectVersion)
 		if err != nil {
@@ -350,7 +350,7 @@ func (p *BaseController) Prepare() {
 	u.WriteString("id-")
 	u.WriteString(strconv.Itoa(p.Project.ID))
 	u.WriteString("-up-version")
-	versionUpString := ac.Get(u.String())
+	versionUpString := common.Strval(ac.Get(u.String()))
 	if versionUpString != "" {
 		err = json.Unmarshal([]byte(common.Strval(versionString)), &p.ProjectUpVersion)
 		if err != nil {
@@ -368,7 +368,7 @@ func (p *BaseController) Prepare() {
 	var l strings.Builder
 	l.WriteString("cache-project-login-")
 	l.WriteString(strconv.Itoa(p.Project.LoginType))
-	loginString := ac.Get(l.String())
+	loginString := common.Strval(ac.Get(l.String()))
 	if loginString != "" {
 		err = json.Unmarshal([]byte(common.Strval(loginString)), &p.ProjectLogin)
 		if err != nil {
@@ -382,7 +382,7 @@ func (p *BaseController) Prepare() {
 	a := []string{"/api/user/login"}
 	if In(Uri, a) {
 		token := p.GetString("client")
-		id := ac.Get(token)
+		id := common.Strval(ac.Get(token))
 		Id := common.GetInterfaceToInt(id)
 		logs.Info("当前登录的ID：", Id)
 		if id == "" || Id <= 0 {
@@ -458,7 +458,7 @@ func (p *BaseController) FetchHeartOnline(u models.Member) HeartList {
 	h.WriteString(strconv.Itoa(u.ProjectId))
 	h.WriteString("-")
 	h.WriteString(strconv.Itoa(u.ID))
-	heartJson := p.Ac.Get(h.String())
+	heartJson := common.Strval(p.Ac.Get(h.String()))
 
 	if heartJson != "" {
 		err := json.Unmarshal([]byte(common.Strval(heartJson)), &heartMacList)
@@ -471,7 +471,7 @@ func (p *BaseController) FetchHeartOnline(u models.Member) HeartList {
 			var s strings.Builder
 			s.WriteString("h-")
 			s.WriteString(i)
-			onlineJson := p.Ac.Get(s.String())
+			onlineJson := common.Strval(p.Ac.Get(s.String()))
 			if onlineJson != "" {
 				err = json.Unmarshal([]byte(common.Strval(onlineJson)), &online)
 				if err == nil {
@@ -499,7 +499,7 @@ func (p *BaseController) InsertHeartList(u models.Member, o api.OnlineData) {
 	h.WriteString(strconv.Itoa(u.ProjectId))
 	h.WriteString("-")
 	h.WriteString(strconv.Itoa(u.ID))
-	heartJson := p.Ac.Get(h.String())
+	heartJson := common.Strval(p.Ac.Get(h.String()))
 	s.WriteString("h-")
 	s.WriteString(o.Client)
 	data, _ := json.Marshal(o)

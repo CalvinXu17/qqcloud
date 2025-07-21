@@ -2,12 +2,13 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/beego/beego/v2/client/orm"
-	"github.com/beego/beego/v2/core/logs"
 	"strconv"
 	"strings"
 	"time"
 	"verification/controllers/common"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type ProjectVersion struct {
@@ -176,8 +177,8 @@ func (c *ProjectVersion) GetUpVersion() (bool, ProjectVersion) {
 	u.WriteString("id-")
 	u.WriteString(strconv.Itoa(p.ProjectId))
 	u.WriteString("-up-version")
-	versionUpString := ac.Get(u.String())
-	if versionUpString == nil || versionUpString == "" {
+	versionUpString := common.Strval(ac.Get(u.String()))
+	if versionUpString == "" {
 		_ = ac.Put(u.String(), string(data), 365*24*60*60*time.Second)
 	}
 	return true, p

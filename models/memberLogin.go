@@ -2,13 +2,14 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/beego/beego/v2/client/orm"
-	"github.com/beego/beego/v2/core/logs"
 	"strconv"
 	"strings"
 	"time"
 	"verification/controllers/common"
 	"verification/validation/api"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 const (
@@ -95,12 +96,12 @@ func AddLog(ip string, times int, mac string, logType int, token string, member 
 		h.WriteString(strconv.Itoa(member.ProjectId))
 		h.WriteString("-")
 		h.WriteString(strconv.Itoa(member.ID))
-		heartJson := ac.Get(h.String())
+		heartJson := common.Strval(ac.Get(h.String()))
 		logs.Info("在线列表：", heartJson)
 		_ = json.Unmarshal([]byte(common.Strval(heartJson)), &heartMacList)
 		index := 0
 		for _, i := range heartMacList {
-			heartIsOnline := ac.Get("h-" + i)
+			heartIsOnline := common.Strval(ac.Get("h-" + i))
 			if heartIsOnline == "" {
 				index++
 			}
@@ -260,7 +261,7 @@ func (m *MemberLogin) FetchOnline(projectId int, pageSize int64, page int64, mem
 		h.WriteString(strconv.Itoa(item.ProjectId))
 		h.WriteString("-")
 		h.WriteString(strconv.Itoa(item.MemberId))
-		heartJson := ac.Get(h.String())
+		heartJson := common.Strval(ac.Get(h.String()))
 		logs.Info("在线列表：", heartJson)
 		_ = json.Unmarshal([]byte(common.Strval(heartJson)), &heartMacList)
 		var clientList []OnlineObj
@@ -269,7 +270,7 @@ func (m *MemberLogin) FetchOnline(projectId int, pageSize int64, page int64, mem
 			var s strings.Builder
 			s.WriteString("h-")
 			s.WriteString(i)
-			heartDataStr := ac.Get(s.String())
+			heartDataStr := common.Strval(ac.Get(s.String()))
 			logs.Info("在线数据:", heartDataStr)
 			if heartDataStr != "" {
 				oldHeartData := api.OnlineData{}
@@ -326,7 +327,7 @@ func (m *MemberLogin) MemberLogout(projectId int, id int, client string) {
 		h.WriteString(strconv.Itoa(projectId))
 		h.WriteString("-")
 		h.WriteString(strconv.Itoa(id))
-		heartJson := ac.Get(h.String())
+		heartJson := common.Strval(ac.Get(h.String()))
 		logs.Info("在线列表：", heartJson)
 		_ = json.Unmarshal([]byte(common.Strval(heartJson)), &heartMacList)
 		for _, i := range heartMacList {
@@ -349,11 +350,11 @@ func (m *MemberLogin) MemberLogout(projectId int, id int, client string) {
 	h.WriteString(strconv.Itoa(projectId))
 	h.WriteString("-")
 	h.WriteString(strconv.Itoa(id))
-	heartJson := ac.Get(h.String())
+	heartJson := common.Strval(ac.Get(h.String()))
 	_ = json.Unmarshal([]byte(common.Strval(heartJson)), &heartMacList)
 	index := 0
 	for _, i := range heartMacList {
-		heartIsOnline := ac.Get("h-" + i)
+		heartIsOnline := common.Strval(ac.Get("h-" + i))
 		if heartIsOnline == "" {
 			index++
 		}

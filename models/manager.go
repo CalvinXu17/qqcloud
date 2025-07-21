@@ -234,7 +234,7 @@ func (m *Manager) GetManagerIdList(id int, managerList *[]int) {
 	if status == false {
 		logs.Error("缓存初始化失败")
 	}
-	c := ac.Get("manager-" + strconv.Itoa(id))
+	c := common.Strval(ac.Get("manager-" + strconv.Itoa(id)))
 	if c == "" {
 		GetManagerList(id, managerList)
 

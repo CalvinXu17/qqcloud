@@ -50,6 +50,7 @@ type Config struct {
 	RedisIp    string `json:"RedisIp"`
 	RedisPort  string `json:"RedisPort"`
 	RedisPwd   string `json:"RedisPwd"`
+	RedisDbNum string `json:"RedisDbNum"`
 	Sql        string `json:"Sql"`
 	SqlIp      string `json:"SqlIp"`
 	SqlPort    string `json:"SqlPort"`
@@ -155,13 +156,14 @@ func ReadIni() (status bool, conf Config) {
 	Key, _ := cfg.String("app::key")
 	RedisIp, _ := cfg.String("redis::ip")
 	if RedisIp == "" {
-		RedisIp = "127.0.1"
+		RedisIp = "127.0.0.1"
 	}
 	RedisPort, _ := cfg.String("redis::port")
 	if RedisPort == "" || RedisPort == "0" {
 		RedisPort = "6379"
 	}
 	RedisPwd, _ := cfg.String("redis::pwd")
+	RedisDbNum, _ := cfg.String("redis::dbnum")
 	Sql, _ := cfg.String("sql::type")
 	SqlIp, _ := cfg.String("sql::ip")
 	SqlPort, _ := cfg.String("sql::port")
@@ -178,6 +180,7 @@ func ReadIni() (status bool, conf Config) {
 		RedisIp:    RedisIp,
 		RedisPort:  RedisPort,
 		RedisPwd:   RedisPwd,
+		RedisDbNum: RedisDbNum,
 		Sql:        Sql,
 		SqlIp:      SqlIp,
 		SqlPort:    SqlPort,
@@ -204,7 +207,7 @@ func initCache() {
 	if Conf.Cache == "file" {
 		ac, err = cache.NewCache("file", `{"CachePath":"./cache","FileSuffix":".cache","DirectoryLevel":"2","EmbedExpiry":"3600"}`)
 	} else if Conf.Cache == "redis" {
-		configStr := fmt.Sprintf(`{"key":"qqyCache","conn":"%s:%s","dbNum":"0","password":"%s"}`, Conf.RedisIp, Conf.RedisPort, Conf.RedisPwd)
+		configStr := fmt.Sprintf(`{"key":"%s","conn":"%s:%s","dbNum":"%s","password":"%s"}`, Conf.Key, Conf.RedisIp, Conf.RedisPort, Conf.RedisDbNum, Conf.RedisPwd)
 		ac, err = cache.NewCache("redis", configStr)
 	} else {
 		logs.Error("未知缓存类型:", Conf.Cache)

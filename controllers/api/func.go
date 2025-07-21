@@ -392,7 +392,7 @@ func (p *IndexController) UnBind() {
 	u := models.Member{}
 	k.WriteString("member-key-" + strconv.Itoa(p.Project.ID) + "-")
 	k.WriteString(param.User)
-	memberJson := p.Ac.Get(k.String())
+	memberJson := common.Strval(p.Ac.Get(k.String()))
 	if memberJson != "" {
 		err := json.Unmarshal([]byte(common.Strval(memberJson)), &u)
 		if err == nil {
@@ -475,7 +475,7 @@ func (p *IndexController) Forget() {
 	u := models.Member{}
 	k.WriteString("member-key-" + strconv.Itoa(p.Project.ID) + "-")
 	k.WriteString(param.User)
-	memberJson := p.Ac.Get(k.String())
+	memberJson := common.Strval(p.Ac.Get(k.String()))
 	if memberJson != "" {
 		err := json.Unmarshal([]byte(common.Strval(memberJson)), &u)
 		if err == nil {
@@ -582,7 +582,7 @@ func (p *IndexController) Points() {
 	u := models.Member{}
 	k.WriteString("member-key-" + strconv.Itoa(p.Project.ID) + "-")
 	k.WriteString(param.User)
-	memberJson := p.Ac.Get(k.String())
+	memberJson := common.Strval(p.Ac.Get(k.String()))
 	if memberJson != "" {
 		err := json.Unmarshal([]byte(common.Strval(memberJson)), &u)
 		if err == nil {
@@ -673,7 +673,7 @@ func (p *IndexController) Heart() {
 	if p.IsEncrypt == true {
 		_ = json.Unmarshal([]byte(p.decryptJsonString), &param)
 	}
-	outMsg := p.Ac.Get("h-o-" + param.Client)
+	outMsg := common.Strval(p.Ac.Get("h-o-" + param.Client))
 	if outMsg != "" {
 		msg = common.Strval(outMsg)
 		_ = p.Ac.Delete("h-" + param.Client)
@@ -682,7 +682,7 @@ func (p *IndexController) Heart() {
 	var s strings.Builder
 	s.WriteString("h-")
 	s.WriteString(param.Client)
-	clientJson := p.Ac.Get(s.String())
+	clientJson := common.Strval(p.Ac.Get(s.String()))
 	if clientJson == "" {
 		logs.Error("已下线1")
 		p.CallErrorJson("已下线", nil)
@@ -712,11 +712,11 @@ func (p *IndexController) Heart() {
 	h.WriteString(strconv.Itoa(p.Project.ID))
 	h.WriteString("-")
 	h.WriteString(strconv.Itoa(heartData.MemberId))
-	heartJson := p.Ac.Get(h.String())
+	heartJson := common.Strval(p.Ac.Get(h.String()))
 	_ = json.Unmarshal([]byte(common.Strval(heartJson)), &heartMacList)
 	data, _ := json.Marshal(heartMacList)
 	_ = p.Ac.Put(h.String(), string(data), 2*60*60*time.Second)
-	memberJson := p.Ac.Get("member-key-" + strconv.Itoa(p.Project.ID) + "-" + heartData.Name)
+	memberJson := common.Strval(p.Ac.Get("member-key-" + strconv.Itoa(p.Project.ID) + "-" + heartData.Name))
 	u := models.Member{ID: heartData.MemberId}
 	if memberJson == "" {
 		status, msg = u.QueryById()
@@ -803,7 +803,7 @@ func (p *IndexController) Client() {
 	u := models.Member{}
 	k.WriteString("member-key-" + strconv.Itoa(p.Project.ID) + "-")
 	k.WriteString(param.User)
-	memberJson := p.Ac.Get(k.String())
+	memberJson := common.Strval(p.Ac.Get(k.String()))
 	if memberJson != "" {
 		err := json.Unmarshal([]byte(common.Strval(memberJson)), &u)
 		if err == nil {
@@ -871,7 +871,7 @@ func (p *IndexController) Logout() {
 	var s strings.Builder
 	s.WriteString("h-")
 	s.WriteString(param.Client)
-	clientJson := p.Ac.Get(s.String())
+	clientJson := common.Strval(p.Ac.Get(s.String()))
 	if clientJson == "" {
 		p.CallErrorJson("已下线", nil)
 	}

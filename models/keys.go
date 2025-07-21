@@ -149,7 +149,7 @@ func (k *Keys) Create(cardsId int, count int64, length int, createType int, mana
 			Tag:       tag,
 		}
 		logs.Error("keys:", spliceKeys.LongKeys)
-		cache := ac.Get(spliceKeys.LongKeys)
+		cache := common.Strval(ac.Get(spliceKeys.LongKeys))
 		if cache == "" && In(spliceKeys.LongKeys, keyStrList) != true {
 			keyList = append(keyList, spliceKeys)
 			count = count - 1

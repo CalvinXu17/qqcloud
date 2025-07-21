@@ -2,12 +2,13 @@ package admin
 
 import (
 	"encoding/json"
-	"github.com/beego/beego/v2/server/web"
 	"strconv"
 	"strings"
 	"time"
 	"verification/controllers/common"
 	"verification/models"
+
+	"github.com/beego/beego/v2/server/web"
 )
 
 type BaseController struct {
@@ -83,7 +84,7 @@ func (b *BaseController) Prepare() {
 		m.GetManagerIdList(Id, &managerIdList)
 		b.ManagerIdArr = managerIdList
 		// 获取缓存的用户信息
-		userCache := ac.Get("manager-info-" + strconv.Itoa(Id))
+		userCache := common.Strval(ac.Get("manager-info-" + strconv.Itoa(Id)))
 		var user = models.Manager{}
 		if userCache == "" {
 			b.Error(401, "请重新登录")
@@ -112,7 +113,7 @@ func (b *BaseController) Prepare() {
 					if strings.ToLower(i.Path) == strings.ToLower(Uri) {
 						if i.Index != "" && i.Value != "" {
 							value := b.GetString(i.Index)
-							if strings.Contains(value,i.Value) {
+							if strings.Contains(value, i.Value) {
 								hasPermission = true
 							}
 						} else {
