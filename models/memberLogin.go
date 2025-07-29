@@ -188,7 +188,7 @@ func (m *MemberLogin) FetchLog(bind int, actionType int, id int) (int64, error) 
 		endDate, _ := time.Parse("2006-01-02 15:04:05", t.Format("2006-01-02 15:04:05"))
 		endTimestamp := endDate.Unix()
 		qs := o.QueryTable("MemberLogin")
-		count, err := qs.Filter("LastLoginTime__gte", endTimestamp).Filter("LastLoginTime__lte", startTimestamp).Filter("Type", actionType).Filter("MemberId", id).Count()
+		count, err := qs.Filter("LastLoginTime__gte", startTimestamp).Filter("LastLoginTime__lte", endTimestamp).Filter("Type", actionType).Filter("MemberId", id).Count()
 		return count, err
 	} else {
 
@@ -201,7 +201,7 @@ func (m *MemberLogin) FetchLog(bind int, actionType int, id int) (int64, error) 
 		monthEndDate, _ := time.Parse("2006-01-02 15:04:05", t.Format("2006-01-02 15:04:05"))
 		monthEndTimestamp := monthEndDate.Unix()
 		qs := o.QueryTable("MemberLogin")
-		count, err := qs.Filter("LastLoginTime__gte", monthEndTimestamp).Filter("LastLoginTime__lte", monthStartTimestamp).Filter("Type", actionType).Filter("MemberId", id).Count()
+		count, err := qs.Filter("LastLoginTime__gte", monthStartTimestamp).Filter("LastLoginTime__lte", monthEndTimestamp).Filter("Type", actionType).Filter("MemberId", id).Count()
 		return count, err
 	}
 }

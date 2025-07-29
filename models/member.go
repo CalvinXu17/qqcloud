@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 	"verification/controllers/common"
@@ -35,6 +36,52 @@ type Member struct {
 	LastLoginIp   string    `orm:"index;size(30);null" json:"last_login_ip"`
 	IsLock        int       `orm:"default(0);description(0正常,1锁定);index" json:"is_lock"`
 	CreateTime    time.Time `orm:"auto_now_add;type(datetime);index" json:"create_time"`
+}
+
+type UnbindLog struct {
+	ID             int       `orm:"column(id)" json:"id"`
+	MemberId       int       `orm:"default(0);index" json:"member_id"`
+	LastUnbindTime time.Time `orm:"auto_now_add;type(datetime);index" json:"last_unbind_time"`
+}
+
+func CanUnbind(memberID int, MaxUnbindTimes int, unbindBefore int, unbindBeforeType int) (bool, string) {
+	o := orm.NewOrm()
+
+	var logs []UnbindLog
+	_, err := o.QueryTable("unbind_log").
+		Filter("MemberId", memberID).
+		OrderBy("-LastUnbindTime").
+		All(&logs)
+
+	if err != nil {
+		return false, "查询解绑记录失败"
+	}
+
+	// 限制次数
+	if len(logs) >= MaxUnbindTimes {
+		return false, fmt.Sprintf("最多解绑%d次", MaxUnbindTimes)
+	}
+
+	// 限制时间间隔
+	if len(logs) > 0 {
+		lastUnbind := logs[0].LastUnbindTime
+		now := time.Now()
+
+		var nextAllowedUnbindTime time.Time
+		if unbindBeforeType == 0 {
+			// 间隔按天计算
+			nextAllowedUnbindTime = lastUnbind.AddDate(0, 0, unbindBefore)
+		} else {
+			// 间隔按月计算
+			nextAllowedUnbindTime = lastUnbind.AddDate(0, unbindBefore, 0)
+		}
+
+		if now.Before(nextAllowedUnbindTime) {
+			return false, fmt.Sprintf("解绑失败：请在%s后再尝试解绑", nextAllowedUnbindTime.Format("2006-01-02"))
+		}
+	}
+
+	return true, fmt.Sprintf("当前已解绑%d次，最多解绑%d次", len(logs)+1, MaxUnbindTimes)
 }
 
 func (m *Member) GetMemberList(managerIdArr []int, projectId int, pageSize int64, page int64, mac string, member string, isLock int) (status bool, pager Pager) {
@@ -375,32 +422,12 @@ func (m *Member) Register(k Keys) (bool, string) {
 }
 
 func (u *Member) Unbind(p ProjectLogin, mac string) (status bool, msg string) {
+	canUnbind, reason := CanUnbind(u.ID, p.UnbindTimes, p.UnbindBefore, p.UnbindDate)
+	if !canUnbind {
+		return false, reason
+	}
 	o := orm.NewOrm()
-	isCut := false
-	log := MemberLogin{}
-	count, _ := log.FetchLog(p.UnbindDate, 2, u.ID)
-	switch p.UnbindWeakenMode {
-	case 0:
-		// 不扣时
-		u.Mac = mac
-	case 1:
-		// 解绑就扣时间
-		isCut = true
-	case 2:
-		// 超出才扣时间
-		if int(count) > p.UnbindTimes {
-			isCut = true
-		}
-	case 3:
-		// 超出无法解绑
-		if int(count) > p.UnbindTimes {
-			return false, "已达到最大可解绑次数"
-		}
-	}
-	if p.UnbindWeaken == 0 && p.UnbindWeakenPoints == 0 {
-		isCut = false
-	}
-	if isCut == true {
+	if p.UnbindWeaken != 0 {
 		// 扣除天数
 		if u.Days >= p.UnbindWeaken {
 			u.Days = u.Days - p.UnbindWeaken
@@ -408,6 +435,8 @@ func (u *Member) Unbind(p ProjectLogin, mac string) (status bool, msg string) {
 		} else {
 			return false, "剩余天数不满足解绑扣除需求，无法解绑"
 		}
+	}
+	if p.UnbindWeakenPoints != 0 {
 		// 扣除点数
 		if u.Points >= p.UnbindWeakenPoints {
 			u.Points = u.Points - p.UnbindWeakenPoints
@@ -415,13 +444,21 @@ func (u *Member) Unbind(p ProjectLogin, mac string) (status bool, msg string) {
 			return false, "剩余点数不满足解绑扣除需求，无法解绑"
 		}
 	}
-	u.Mac = mac
-	_, err := o.Update(u)
+	_, err := o.Insert(&UnbindLog{
+		MemberId:       u.ID,
+		LastUnbindTime: time.Now(),
+	})
 	if err != nil {
 		logs.Error("解绑失败：", err)
 		return false, "解绑失败"
 	}
-	return true, "解绑成功"
+	u.Mac = mac
+	_, err = o.Update(u)
+	if err != nil {
+		logs.Error("解绑失败：", err)
+		return false, "解绑失败"
+	}
+	return true, "解绑成功," + reason
 
 }
 

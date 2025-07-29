@@ -1,16 +1,17 @@
 package main
 
 import (
+	"runtime"
+	"verification/controllers/common"
+	"verification/models"
+	_ "verification/routers"
+
 	"github.com/astaxie/beego/validation"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
-	"runtime"
-	"verification/controllers/common"
-	"verification/models"
-	_ "verification/routers"
 )
 
 func init() {
@@ -43,6 +44,7 @@ func init() {
 		new(models.Role),
 		new(models.RoleItem),
 		new(models.ManagerCards),
+		new(models.UnbindLog),
 	)
 	_ = orm.RunSyncdb("default", Conf.SqlRebuild, true)
 	var m *models.Manager

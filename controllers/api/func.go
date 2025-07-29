@@ -388,6 +388,10 @@ func (p *IndexController) UnBind() {
 	if p.IsEncrypt == true {
 		_ = json.Unmarshal([]byte(p.decryptJsonString), &param)
 	}
+
+	if param.User == "" {
+		p.CallErrorJson("会员不存在", nil)
+	}
 	var k strings.Builder
 	u := models.Member{}
 	k.WriteString("member-key-" + strconv.Itoa(p.Project.ID) + "-")
@@ -429,21 +433,21 @@ func (p *IndexController) UnBind() {
 	if u.Mac == "" {
 		p.CallErrorJson("您已经解绑过了", nil)
 	}
-	if u.Mac == p.Param.Mac {
-		p.CallErrorJson("无需解绑", nil)
+	if u.Mac != p.Param.Mac && p.ProjectLogin.UnbindMode == 1 {
+		p.CallErrorJson("请在原机解绑！", nil)
 	}
+	p.Param.Mac = ""
 	logs.Error("提取的用户数据", u.Mac, p.Param.Mac)
 	// 执行解绑
 	status, msg = u.Unbind(p.ProjectLogin, p.Param.Mac)
-	if status == false {
+	if !status {
 		p.CallErrorJson(msg, nil)
 	}
 	// 添加解绑记录
-	_ = models.AddLog(p.Ip, int(time.Now().Unix()), p.Param.Mac, 1, "", u)
 	memberJ, _ := json.Marshal(u)
 	_ = p.Ac.Put("member-key-"+strconv.Itoa(p.Project.ID)+"-"+u.Name, string(memberJ), 20*60*60*time.Second)
 	_ = p.Ac.Put("member-key-"+strconv.Itoa(p.Project.ID)+"-"+u.Email, string(memberJ), 20*60*60*time.Second)
-	p.CallJson("解绑成功", nil)
+	p.CallJson(msg, nil)
 }
 
 func (p *IndexController) Forget() {
